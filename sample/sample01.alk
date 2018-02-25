@@ -1,3 +1,4 @@
+; 関数呼び出し・作成の簡易サンプル ;
 krz 20 f0
 zali f0
 fenx ata20
@@ -5,6 +6,7 @@ ycax
 dosn
 
 cers ata20
-krz s@1 f0
+krz 4 f0
+krz s@f0 f0
 ata 20 f0
 dosn

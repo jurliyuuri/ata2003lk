@@ -15,9 +15,9 @@ fenx cer-lix
 ycax
 
 ; 関数定義は"cers (関数名)"とする ;
-; 引数にはk(数字)でアクセス可能とし添字は0から始まるとする ;
+; 引数にはs@(相対アドレス)でアクセス可能とする ;
 ; dosnに来たらリターンする ;
 cers cer-lix
-ata k0 k1
-krz k1 f0
+ata s@0 s@1
+krz s@1 f0
 dosn

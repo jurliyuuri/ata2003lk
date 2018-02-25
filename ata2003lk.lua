@@ -20,9 +20,9 @@ local function write(str, ws)
 	elseif str ~= "" then
 		local v = str
 
-		local usestack = string.match(v, "^s@.+")
+		local usestack = string.match(v, "^s@(.+)")
 		if usestack ~= nil then
-			v = "f5+" .. (tonumber(string.sub(usestack, 3)) << 2) .. "@"
+			v = "f5+" .. usestack .. "@"
 		end
 
 		if mode == 1 then
