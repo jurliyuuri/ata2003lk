@@ -10,6 +10,7 @@ ata f1 f0
 ; 引数の設定は"zali (値)"とする;
 ; 関数呼び出しは"fenx (関数名)"とする ;
 ; 呼び出し後は"ycax"でスタックを掃除する ;
+zali 10
 zali f0
 fenx cer-lix
 ycax
@@ -18,6 +19,6 @@ ycax
 ; 引数にはs@(相対アドレス)でアクセス可能とする ;
 ; dosnに来たらリターンする ;
 cers cer-lix
-ata s@0 s@1
-krz s@1 f0
+krz s@8 f0
+ata s@4 f0
 dosn

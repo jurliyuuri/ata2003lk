@@ -1,4 +1,5 @@
 local mode = ""
+local larcount = 0
 local infile, outfile, err
 
 local function write(str, ws)
@@ -17,6 +18,19 @@ local function write(str, ws)
 	elseif str == "dosn" then
 		mode = 0
 		return outfile:write("krz f5@ xx" .. ws)
+	elseif str == "lar" then
+		mode = 0
+		larcount = larcount + 1
+		return outfile:write("nll lar" .. tostring(larcount) .. " fi" .. ws)
+	elseif str == "xtlo" or str == "xtlonys" or str == "xylo" or str == "xylonys"
+		or str == "clo" or str == "niv"
+		or str == "llo" or str == "llonys" or str == "xolo" or str == "xolonys" then
+		mode = 0
+		return outfile:write(str .. " malkrz lar-sit" .. tostring(larcount) .. " xx" .. ws)
+	elseif str == "ral" then
+		mode = 0
+		return outfile:write("krz lar" .. tostring(larcount) .. " xx\n"
+			.. "nll lar-sit" .. tostring(larcount) .." fen " .. ws)
 	elseif str ~= "" then
 		local v = str
 
@@ -60,6 +74,10 @@ function transpile(filename)
 		if c == ";" then
 			comment = not comment
 		elseif not comment then
+			if c == "\t" then
+				c = " "
+			end
+
 			if c == "\n" or c == '\r' or c == " " then
 				outfile, err = write(buf, c)
 				if outfile == nil then
