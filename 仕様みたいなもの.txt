@@ -14,6 +14,7 @@ zali 10
 zali f0
 fenx cer-lix
 ycax
+ycax
 
 ; 関数定義は"cers (関数名)"とする ;
 ; 引数にはs@(相対アドレス)でアクセス可能とする ;
