@@ -1,0 +1,11 @@
+; fiが使えるか検証 ;
+krz 0 f0
+krz 0 f1
+lar f1 10 xolo
+	krz f1 f2
+	ada 1 f2
+	fi f2 0 clo malkrz jmp xx
+	ata f1 f0
+	ata 1 f1 l' jmp
+ral
+dosn
