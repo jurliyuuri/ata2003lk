@@ -1,0 +1,8 @@
+; kueを使用する ;
+kue test
+
+cers test
+; "q @ 0" の確認 ;
+krz q @0 f0
+ata q@ 1 f0
+dosn
