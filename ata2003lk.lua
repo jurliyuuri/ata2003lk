@@ -38,7 +38,7 @@ function readfile(filename)
                 if buf == "" then
                     local str = table.remove(words)
 
-                    if string.match(str, "q") then
+                    if str == "q" then
                         buf = str .."@"
                     else
                         error("Invalid pattern: '@'")
