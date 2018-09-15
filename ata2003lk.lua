@@ -1,3 +1,9 @@
+
+local function isregister(str)
+    return str == "f0" or str == "f1" or str == "f2"
+        or str == "f3" or str == "f5"
+end
+
 function readfile(filename)
     local words = {}
     local infile
@@ -38,7 +44,7 @@ function readfile(filename)
                 if buf == "" then
                     local str = table.remove(words)
 
-                    if str == "q" then
+                    if str == "q" or isregister(str) then
                         buf = str .."@"
                     else
                         error("Invalid pattern: '@'")
@@ -53,10 +59,6 @@ function readfile(filename)
     end
 
     return words
-end
-
-local function isregister(str)
-    return str == "f0" or str == "f1" or str == "f2" or str == "f3"
 end
 
 local function isrelational(str)
@@ -98,7 +100,8 @@ function analyze(words)
         local v = words[i]
 
         if v == "xok" or v == "kue" or v == "nll" or v == "l'" or v == "nac"
-            or v == "zali" or v == "ycax" or v == "fenx" or v == "cers" then
+            or v == "zali" or v == "ycax" or v == "fenx" or v == "cers"
+            or v == "dus" or v == "maldus" then
             table.insert(tokens, {
                 operator = v,
                 operands = {
@@ -131,7 +134,7 @@ function analyze(words)
                 larcheck = larcheck + 1
             end
             i = i + 4
-        elseif v == "lat" or v == "latsna" then
+        elseif v == "lat" or v == "latsna" or v == "inj" then
             table.insert(tokens, {
                 operator = v,
                 operands = {
@@ -163,7 +166,9 @@ function analyze(words)
 end
 
 local function getlabel(label, outlabel, inlabel)
-    if outlabel[label] == nil then
+    if label == "tvarlon-knloan" then
+        return "3126834864"
+    elseif outlabel[label] == nil then
         if inlabel[label] ~= nil then
             label = "--" .. label .. "--"
         else
@@ -175,19 +180,31 @@ local function getlabel(label, outlabel, inlabel)
 end
 
 local function getvarlabel(var, outlabel, inlabel)
-    local count = string.match(var, "q@(%d+)")
+    local first, second = string.match(var, "(%w+)@(%d+)$")
     local success, label = pcall(getlabel, var, outlabel, inlabel)
 
-    if count ~= nil then
-        return "f5+" .. ((tonumber(count) + 1) * 4) .. "@"
+    if first ~= nil and second ~= nil then
+        if first == "q" then
+            return "f5+" .. ((tonumber(second) + 1) * 4) .. "@"
+        elseif isregister(first) then
+            if second == "0" then
+                return first .. "@"
+            else
+                return first .. "+" .. (tonumber(second) * 4) .. "@"
+            end
+        else
+            error("Not support: " .. first)
+        end
     elseif success then
         return label
+    elseif var == "xx" then
+        error("Not support: xx")
     else
         return var
     end
 end
 
-function create(analyzed)
+function transpile(analyzed)
     local i = 1
     local tokens = analyzed.tokens
     local count = #tokens
@@ -212,19 +229,26 @@ function create(analyzed)
             })
         elseif token.operator == "ycax" then
             local num = tonumber(token.operands[1])
+
             if num ~= nil then
-                table.insert(result, {
-                    operator = "ata",
-                    operands = {
-                        num * 4,
-                        "f5",
-                    },
-                })
+                local last = result[#result]
+                local value = tonumber(last.operands[1])
+                if last.operator == "ata" and value ~= nil and last.operands[2] == "f5" then
+                    last.operands[1] = value + num * 4
+                else
+                    table.insert(result, {
+                        operator = "ata",
+                        operands = {
+                            num * 4,
+                            "f5",
+                        },
+                    })
+                end
             else
                 taleb.insert(result, {
                     operator = "ata",
                     operands = {
-                        token.operands[1],
+                        getvarlabel(token.operands[1]),
                         "f5",
                     },
                 })
@@ -257,6 +281,22 @@ function create(analyzed)
             table.insert(result, {
                 operator = "krz",
                 operands = { "f5@", "xx" }
+            })
+        elseif token.operator == "dus" then
+            table.insert(result, {
+                operator = "krz",
+                operands = {
+                    getvarlabel(token.operands[1], analyzed.outlabel, analyzed.inlabel),
+                    "xx",
+                }
+            })
+        elseif token.operator == "maldus" then
+            table.insert(result, {
+                operator = "malkrz",
+                operands = {
+                    getvarlabel(token.operands[1], analyzed.outlabel, analyzed.inlabel),
+                    "xx",
+                }
             })
         elseif token.operator == "lar" then
             table.insert(larlabel, "--lar--".. i .."--")
@@ -330,24 +370,24 @@ function create(analyzed)
         i = i + 1
     end
 
-    return result
+    local outfile, err = io.open(string.match(arg[1], "(.+)%.alk") .. ".lk", "w")
+    if outfile == nil then
+        print("error (outfile): " .. tostring(err))
+        os.exit(1)
+    end
+
+    outfile:write("'i'c\n")
+    for i, v in ipairs(result) do
+        if v.suboperator ~= nil then
+            outfile:write(v.operator .. " " .. table.concat(v.operands, " ") .. " " .. v.suboperator .. "\n")
+        else
+            outfile:write(v.operator .. " " .. table.concat(v.operands, " ") .. "\n")
+        end
+    end
 end
 
 local wordlist = readfile(arg[1])
 local analyzelist = analyze(wordlist)
-local resultlist = create(analyzelist)
 
-local outfile, err = io.open(string.match(arg[1], "(.+)%.alk") .. ".lk", "w")
-if outfile == nil then
-    print("error (outfile): " .. tostring(err))
-    os.exit(1)
-end
+transpile(analyzelist)
 
-outfile:write("'i'c\n")
-for i, v in ipairs(resultlist) do
-    if v.suboperator ~= nil then
-        outfile:write(v.operator .. " " .. table.concat(v.operands, " ") .. " " .. v.suboperator .. "\n")
-    else
-        outfile:write(v.operator .. " " .. table.concat(v.operands, " ") .. "\n")
-    end
-end
