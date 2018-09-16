@@ -22,7 +22,7 @@ function readfile(filename)
             if comment then
                 comment = false
             else
-                if buf ~= "" then
+                if buf ~= "" and string.sub(buf, string.len(buf)) ~= "@" then
                     table.insert(words, buf)
                     buf = ""
                 end
@@ -58,6 +58,10 @@ function readfile(filename)
         end
     end
 
+    if comment then
+        error("Not found end ';'");
+    end
+
     return words
 end
 
@@ -65,6 +69,12 @@ local function isrelational(str)
     return str == "xtlo" or str == "xtlonys" or str == "xylo" or str == "xylonys"
         or str == "clo" or str == "niv"
         or str == "llo" or str == "llonys" or str == "xolo" or str == "xolonys"
+end
+
+local function ismono(str)
+    return str == "xok" or str == "kue" or str == "nll" or str == "l'" or str == "nac"
+        or str == "zali" or str == "ycax" or str == "fenx" or str == "cers"
+        or str == "dus" or str == "maldus"
 end
 
 function analyze(words)
@@ -76,7 +86,8 @@ function analyze(words)
     -- ラベル処理
     for i, v in ipairs(words) do
         if swi ~= nil then
-            if isregister(v) then
+            local num = tonumber(v, 10)
+            if isregister(v) or string.sub(v, 1, 2) == "q@" or (num ~= nil and num >= 0) then
                 error("invalid label: " .. v)
             elseif swi == "out" then
                 outlabel[v] = true
@@ -99,9 +110,7 @@ function analyze(words)
     while i <= #words do
         local v = words[i]
 
-        if v == "xok" or v == "kue" or v == "nll" or v == "l'" or v == "nac"
-            or v == "zali" or v == "ycax" or v == "fenx" or v == "cers"
-            or v == "dus" or v == "maldus" then
+        if ismono(v) then
             table.insert(tokens, {
                 operator = v,
                 operands = {
@@ -109,7 +118,7 @@ function analyze(words)
                 },
             })
             i = i + 2
-        elseif v == "ral" or v == "dosn" then
+        elseif v == "ral" or v == "dosn"  or v == "fen" then
             table.insert(tokens, {
                 operator = v,
                 operands = {},
@@ -158,6 +167,12 @@ function analyze(words)
         end
     end
 
+    if larcheck > 0 then
+        error("Not found to match 'ral'")
+    elseif larcheck < 0 then
+        error("Found too many 'ral'")
+    end
+
     return {
         tokens = tokens,
         inlabel = inlabel,
@@ -199,8 +214,15 @@ local function getvarlabel(var, outlabel, inlabel)
         return label
     elseif var == "xx" then
         error("Not support: xx")
+    elseif string.find(var, "@", 1, true) ~= nil then
+        error("Invalid operand: " .. var)
     else
-        return var
+        local num = tonumber(var)
+        if (num ~= nil and num >= 0) or isregister(var) then
+            return var
+        else
+            error("Invalid operand: " .. var)
+        end
     end
 end
 
@@ -233,6 +255,7 @@ function transpile(analyzed)
             if num ~= nil then
                 local last = result[#result]
                 local value = tonumber(last.operands[1])
+
                 if last.operator == "ata" and value ~= nil and last.operands[2] == "f5" then
                     last.operands[1] = value + num * 4
                 else
@@ -245,7 +268,7 @@ function transpile(analyzed)
                     })
                 end
             else
-                taleb.insert(result, {
+                table.insert(result, {
                     operator = "ata",
                     operands = {
                         getvarlabel(token.operands[1]),
@@ -299,7 +322,7 @@ function transpile(analyzed)
                 }
             })
         elseif token.operator == "lar" then
-            table.insert(larlabel, "--lar--".. i .."--")
+            table.insert(larlabel, "--lar--".. i)
             table.insert(result, {
                 operator = "nll",
                 operands = { larlabel[#larlabel] },
@@ -312,7 +335,7 @@ function transpile(analyzed)
                     getvarlabel(token.operands[2], analyzed.outlabel, analyzed.inlabel),
                 }
             })
-            table.insert(larsitlabel, "--lar--sit--" .. i .. "--")
+            table.insert(larsitlabel, "--lar--sit--" .. i)
             table.insert(result, {
                 operator = "malkrz",
                 operands = { larsitlabel[#larlabel], "xx" },
@@ -387,7 +410,18 @@ function transpile(analyzed)
 end
 
 local wordlist = readfile(arg[1])
+print(wordlist)
+for i, v in ipairs(wordlist) do
+    print(i, v)
+end
+
 local analyzelist = analyze(wordlist)
-
+print(analyzelist)
+for i, v in ipairs(analyzelist.tokens) do
+    if v.suboperator ~= nil then
+        print(i, v.operator .. " " .. table.concat(v.operands, " ") .. " " .. v.suboperator)
+    else
+        print(i, v.operator .. " " .. table.concat(v.operands, " "))
+    end
+end
 transpile(analyzelist)
-
