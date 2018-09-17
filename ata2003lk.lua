@@ -77,15 +77,31 @@ local function ismono(str)
         or str == "dus" or str == "maldus"
 end
 
+local function skipcount(str)
+    if str == "ral" or str == "dosn" or str == "fen" then
+        return 0
+    elseif ismono(str) then
+        return 1
+    elseif str == "lar" or str == "fi"
+        or str == "lat" or str == "latsna" or str == "inj" then
+        return 3
+    else
+        return 2
+    end
+end
+
 function analyze(words)
     local tokens = {}
     local outlabel = {}
     local inlabel = {}
     local swi = nil
+    local skip = 0
 
     -- ラベル処理
     for i, v in ipairs(words) do
-        if swi ~= nil then
+        if skip ~= 0 then
+            skip = skip - 1
+        elseif swi ~= nil then
             local num = tonumber(v, 10)
             if isregister(v) or string.sub(v, 1, 2) == "q@" or (num ~= nil and num >= 0) then
                 error("invalid label: " .. v)
@@ -100,6 +116,7 @@ function analyze(words)
         elseif v == "nll" or v == "l'" or v == "cers" then
             swi = "in"
         else
+            skip = skipcount(v)
             swi = nil
         end
     end
@@ -217,8 +234,10 @@ local function getvarlabel(var, outlabel, inlabel)
     elseif string.find(var, "@", 1, true) ~= nil then
         error("Invalid operand: " .. var)
     else
-        local num = tonumber(var)
-        if (num ~= nil and num >= 0) or isregister(var) then
+        local num = tonumber(var, 10)
+        if (num ~= nil and num >= 0) then
+            return tostring(num)
+        elseif isregister(var) then
             return var
         else
             error("Invalid operand: " .. var)
@@ -254,9 +273,13 @@ function transpile(analyzed)
 
             if num ~= nil then
                 local last = result[#result]
-                local value = tonumber(last.operands[1])
+                local value = nil
 
-                if last.operator == "ata" and value ~= nil and last.operands[2] == "f5" then
+                if last ~= nil then
+                    value = tonumber(last.operands[1])
+                end
+
+                if last ~= nil and last.operator == "ata" and value ~= nil and last.operands[2] == "f5" then
                     last.operands[1] = value + num * 4
                 else
                     table.insert(result, {
@@ -268,6 +291,13 @@ function transpile(analyzed)
                     })
                 end
             else
+                table.insert(result, {
+                    operator = "dro",
+                    operands = {
+                        "2",
+                        getvarlabel(token.operands[1]),
+                    },
+                })
                 table.insert(result, {
                     operator = "ata",
                     operands = {
@@ -410,18 +440,15 @@ function transpile(analyzed)
 end
 
 local wordlist = readfile(arg[1])
-print(wordlist)
-for i, v in ipairs(wordlist) do
-    print(i, v)
-end
-
 local analyzelist = analyze(wordlist)
-print(analyzelist)
-for i, v in ipairs(analyzelist.tokens) do
-    if v.suboperator ~= nil then
-        print(i, v.operator .. " " .. table.concat(v.operands, " ") .. " " .. v.suboperator)
-    else
-        print(i, v.operator .. " " .. table.concat(v.operands, " "))
-    end
-end
+-- -- 確認用
+-- print(analyzelist)
+-- for i, v in ipairs(analyzelist.tokens) do
+--     if v.suboperator ~= nil then
+--         print(i, v.operator .. " " .. table.concat(v.operands, " ") .. " " .. v.suboperator)
+--     else
+--         print(i, v.operator .. " " .. table.concat(v.operands, " "))
+--     end
+-- end
+
 transpile(analyzelist)
