@@ -1,7 +1,7 @@
 
 local function isregister(str)
     return str == "f0" or str == "f1" or str == "f2"
-        or str == "f3" or str == "f5"
+        or str == "f3" or str == "f5" or str == "q"
 end
 
 function readfile(filename)
@@ -44,7 +44,7 @@ function readfile(filename)
                 if buf == "" then
                     local str = table.remove(words)
 
-                    if str == "q" or isregister(str) then
+                    if isregister(str) then
                         buf = str .."@"
                     else
                         error("Invalid pattern: '@'")
@@ -103,7 +103,7 @@ function analyze(words)
             skip = skip - 1
         elseif swi ~= nil then
             local num = tonumber(v, 10)
-            if isregister(v) or string.sub(v, 1, 2) == "q@" or (num ~= nil and num >= 0) then
+            if isregister(v) or string.find(v, "@", 1, true) ~= nil or (num ~= nil and num >= 0) then
                 error("invalid label: " .. v)
             elseif swi == "out" then
                 outlabel[v] = true
@@ -212,7 +212,7 @@ local function getlabel(label, outlabel, inlabel)
 end
 
 local function getvarlabel(var, outlabel, inlabel)
-    local first, second = string.match(var, "(%w+)@(%d+)$")
+    local first, second = string.match(var, "^(%w+)@(%d+)$")
     local success, label = pcall(getlabel, var, outlabel, inlabel)
 
     if first ~= nil and second ~= nil then
@@ -272,24 +272,13 @@ function transpile(analyzed)
             local num = tonumber(token.operands[1])
 
             if num ~= nil then
-                local last = result[#result]
-                local value = nil
-
-                if last ~= nil then
-                    value = tonumber(last.operands[1])
-                end
-
-                if last ~= nil and last.operator == "ata" and value ~= nil and last.operands[2] == "f5" then
-                    last.operands[1] = value + num * 4
-                else
-                    table.insert(result, {
-                        operator = "ata",
-                        operands = {
-                            num * 4,
-                            "f5",
-                        },
-                    })
-                end
+                table.insert(result, {
+                    operator = "ata",
+                    operands = {
+                        num * 4,
+                        "f5",
+                    },
+                })
             else
                 table.insert(result, {
                     operator = "dro",
