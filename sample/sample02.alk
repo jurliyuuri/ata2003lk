@@ -2,7 +2,7 @@
 krz 0 f0
 krz 0 f1
 lar f1 10 xolo
-	ata f1 f0
-	ata 1 f1
+    ata f1 f0
+    ata 1 f1
 ral
 dosn

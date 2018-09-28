@@ -2,11 +2,11 @@
 krz 0 f0
 krz 0 f1
 lar f1 10 xolo
-	krz 0 f2
-	lar f2 10 xolo
-		ata f2 f0
-		ata 1 f2
-	ral
-	ata 1 f1
+    krz 0 f2
+    lar f2 10 xolo
+        ata f2 f0
+        ata 1 f2
+    ral
+    ata 1 f1
 ral
 dosn
