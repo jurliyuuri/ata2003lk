@@ -1,7 +1,7 @@
 
 local function isregister(str)
     return str == "f0" or str == "f1" or str == "f2"
-        or str == "f3" or str == "f5" or str == "q"
+        or str == "f3" or str == "f5"
 end
 
 function readfile(filename)
@@ -216,9 +216,7 @@ local function getvarlabel(var, outlabel, inlabel)
     local success, label = pcall(getlabel, var, outlabel, inlabel)
 
     if first ~= nil and second ~= nil then
-        if first == "q" then
-            return "f5+" .. ((tonumber(second) + 1) * 4) .. "@"
-        elseif isregister(first) then
+        if isregister(first) then
             if second == "0" then
                 return first .. "@"
             else
@@ -382,12 +380,27 @@ function transpile(analyzed)
                 },
             })
         elseif token.operator == "l'" then
-            table.insert(result, {
+            local value = {
                 operator = "l'",
                 operands = {
                     getlabel(token.operands[1], analyzed.outlabel, analyzed.inlabel)
                 },
-            })
+            };
+
+            if analyzed.tokens[i - 1] ~= nil then
+                local prev = analyzed.tokens[i - 1].operator
+                if prev == "zali" or prev == "lar" or prev == "ral" then
+                        table.insert(result, #result, value)
+                elseif prev == "fenx" then
+                    table.insert(result, #result - 1, value)
+                elseif prev == "ycax" and type(result[#result].operands[0]) ~= "number" then
+                    table.insert(result, #result,  value)
+                else
+                    table.insert(result, value)
+                end
+            else
+                error("Nothing operator before \"l'\"")
+            end
         elseif token.operator == "fi" then
             table.insert(result, {
                 operator = "fi",

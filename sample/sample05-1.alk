@@ -2,7 +2,7 @@
 kue test
 
 cers test
-; "q @ 0" の確認 ;
-krz q @0 f0
-ata q@ 1 f0
+; "f5 @ 0" の確認 ;
+krz f5 @0 f0
+ata f5@ 1 f0
 dosn
