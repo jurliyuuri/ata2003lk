@@ -22,7 +22,9 @@ function readfile(filename)
             if comment then
                 comment = false
             else
-                if buf ~= "" and string.sub(buf, string.len(buf)) ~= "@" then
+                if string.match(buf, "[+|]$") ~= nil then
+                    -- 何もしない
+                elseif buf ~= "" then
                     table.insert(words, buf)
                     buf = ""
                 end
@@ -34,21 +36,30 @@ function readfile(filename)
             end
 
             if c == " " or c == "\r" or c == "\n" then
-                if string.sub(buf, string.len(buf)) == "@" then
+                if string.match(buf, "[+|]$") ~= nil then
+                    if ~isregister(str) and tonumber(str) == nil then
+                        error("Invalid operator '" .. c .. "'")
+                    end
                     -- 何もしない
                 elseif buf ~= "" then
                     table.insert(words, buf)
                     buf = ""
                 end
+            elseif c == "+" or c == "|" then
+                if buf == "" then
+                    local str = table.remove(words)
+                    if isregister(str) or tonumber(str) ~= nil then
+                        buf = str .. c
+                    else
+                        error("Invalid operator '" .. c .. "'")
+                    end
+                else
+                    buf = buf .. c
+                end
             elseif c == "@" then
                 if buf == "" then
                     local str = table.remove(words)
-
-                    if isregister(str) then
-                        buf = str .."@"
-                    else
-                        error("Invalid pattern: '@'")
-                    end
+                    buf = str .."@"
                 else
                     buf = buf .. "@"
                 end
@@ -103,7 +114,7 @@ function analyze(words)
             skip = skip - 1
         elseif swi ~= nil then
             local num = tonumber(v, 10)
-            if isregister(v) or string.find(v, "@", 1, true) ~= nil or (num ~= nil and num >= 0) then
+            if isregister(v) or string.find(v, "[+|@]") ~= nil or (num ~= nil and num >= 0) then
                 error("invalid label: " .. v)
             elseif swi == "out" then
                 outlabel[v] = true
@@ -212,15 +223,34 @@ local function getlabel(label, outlabel, inlabel)
 end
 
 local function getvarlabel(var, outlabel, inlabel)
-    local first, second = string.match(var, "^(%w+)@(%d+)$")
+    local first, opd, second = string.match(var, "^(%w+)([+|])(%w+)@$")
     local success, label = pcall(getlabel, var, outlabel, inlabel)
 
     if first ~= nil and second ~= nil then
-        if isregister(first) then
+        local isfirst = isregister(first)
+        local issecond = isregister(second)
+
+        if isfirst and issecond then
+            if opd == "|" then
+                error("Not supported 'reg|reg'");
+            else
+                return first .. "+" .. second .. "@"
+            end
+        elseif isfirst then
             if second == "0" then
                 return first .. "@"
+            elseif opd == "|" then
+                return first .. "+" .. (0x00000000FFFFFFFF & (-tonumber(second))) .. "@"
             else
-                return first .. "+" .. (tonumber(second) * 4) .. "@"
+                return first .. "+" .. tonumber(second) .. "@"
+            end
+        elseif issecond then
+            if first == "0" then
+                return second .. "@"
+            elseif opd == "|" then
+                error("Not supported 'imm|reg'");
+            else
+                return second .. "+" .. tonumber(first) .. "@"
             end
         else
             error("Not support: " .. first)
@@ -229,8 +259,19 @@ local function getvarlabel(var, outlabel, inlabel)
         return label
     elseif var == "xx" then
         error("Not support: xx")
-    elseif string.find(var, "@", 1, true) ~= nil then
+    elseif string.find(var, "[+|]") ~= nil then
         error("Invalid operand: " .. var)
+    elseif string.sub(var, string.len(var)) == "@" then
+        local varsub = string.match(var, "^(%w+)@$")
+        local num = tonumber(varsub, 10)
+
+        if (num ~= nil and num >= 0) then
+            return tostring(num) + "@"
+        elseif isregister(varsub) then
+            return var
+        else
+            error("Invalid operand: " .. var)
+        end
     else
         local num = tonumber(var, 10)
         if (num ~= nil and num >= 0) then
@@ -443,14 +484,14 @@ end
 
 local wordlist = readfile(arg[1])
 local analyzelist = analyze(wordlist)
--- -- 確認用
--- print(analyzelist)
--- for i, v in ipairs(analyzelist.tokens) do
---     if v.suboperator ~= nil then
---         print(i, v.operator .. " " .. table.concat(v.operands, " ") .. " " .. v.suboperator)
---     else
---         print(i, v.operator .. " " .. table.concat(v.operands, " "))
---     end
--- end
+-- 確認用
+print(analyzelist)
+for i, v in ipairs(analyzelist.tokens) do
+    if v.suboperator ~= nil then
+        print(i, v.operator .. " " .. table.concat(v.operands, " ") .. " " .. v.suboperator)
+    else
+        print(i, v.operator .. " " .. table.concat(v.operands, " "))
+    end
+end
 
 transpile(analyzelist)
