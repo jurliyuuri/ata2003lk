@@ -74,7 +74,7 @@ end
 local function ismono(str)
     return str == "xok" or str == "kue" or str == "nll" or str == "l'" or str == "nac"
         or str == "zali" or str == "ycax" or str == "fenx" or str == "cers"
-        or str == "dus" or str == "maldus"
+        or str == "dus" or str == "maldus" or str == "lifem" or str == "lifem8" or str == "lifem16"
 end
 
 local function skipcount(str)
