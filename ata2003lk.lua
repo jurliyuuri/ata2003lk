@@ -209,16 +209,30 @@ function analyze(words)
 end
 
 local function getlabel(label, outlabel, inlabel)
-    if label == "tvarlon-knloan" then
-        return "3126834864"
-    elseif outlabel[label] == nil then
-        if inlabel[label] ~= nil then
-            label = "--" .. label .. "--"
-        else
-            error("Not found :" .. label)
+    local isaddress = string.match(label, "[@]$")
+    if isaddress then
+        local labelpart = string.sub(label, 1, string.len(label) - 1)
+
+        if labelpart == "tvarlon-knloan" then
+            return "0"
+        elseif outlabel[labelpart] == nil then
+            if inlabel[labelpart] ~= nil then
+                label = "--" .. labelpart .. "--@"
+            else
+                error("Not found :" .. labelpart)
+            end
+        end
+    else
+        if label == "tvarlon-knloan" then
+            return "3126834864"
+        elseif outlabel[label] == nil then
+            if inlabel[label] ~= nil then
+                label = "--" .. label .. "--"
+            else
+                error("Not found :" .. label)
+            end
         end
     end
-
     return label
 end
 
