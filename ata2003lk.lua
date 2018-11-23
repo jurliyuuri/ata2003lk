@@ -248,7 +248,22 @@ local function getvarlabel(var, outlabel, inlabel)
             if opd == "|" then
                 error("Not supported 'reg|reg'");
             else
-                return first .. "+" .. second .. "@"
+                local buf
+                success, label = pcall(getlabel, first, outlabel, inlabel);
+                if success then
+                    buf = label .. "+"
+                else
+                    buf = first .. "+"
+                end
+
+                success, label = pcall(getlabel, second, outlabel, inlabel);
+                if success then
+                    buf = buf .. label .. "@"
+                else
+                    buf = buf .. second .. "@"
+                end
+
+                return buf
             end
         elseif isfirst then
             if second == "0" then
