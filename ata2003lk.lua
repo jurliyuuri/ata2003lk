@@ -1,3 +1,4 @@
+require("utils")
 
 local function isregister(str)
     return str == "f0" or str == "f1" or str == "f2"
@@ -136,12 +137,23 @@ function analyze(words)
         local v = words[i]
 
         if ismono(v) then
-            table.insert(tokens, {
-                operator = v,
-                operands = {
-                    words[i + 1]
-                },
-            })
+            if v == "l'" then
+                local val, idx = utils.findlist(tokens,function (w) return w.operator ~= "kue" and w.operator ~= "xok" end, true)
+
+                table.insert(tokens, idx, {
+                    operator = "nll",
+                    operands = {
+                        words[i + 1]
+                    },
+                })
+            else
+                table.insert(tokens, {
+                    operator = v,
+                    operands = {
+                        words[i + 1]
+                    },
+                })
+            end
             i = i + 2
         elseif v == "ral" or v == "dosn"  or v == "fen" then
             table.insert(tokens, {

@@ -48,10 +48,24 @@ function transpile(analyzed)
                 })
             else
                 table.insert(result, {
-                    operator = "dro",
+                    operator = "ata",
                     operands = {
-                        "2",
                         getvarlabel(token.operands[1]),
+                        "f5",
+                    },
+                })
+                table.insert(result, {
+                    operator = "ata",
+                    operands = {
+                        getvarlabel(token.operands[1]),
+                        "f5",
+                    },
+                })
+                table.insert(result, {
+                    operator = "ata",
+                    operands = {
+                        getvarlabel(token.operands[1]),
+                        "f5",
                     },
                 })
                 table.insert(result, {
@@ -148,28 +162,6 @@ function transpile(analyzed)
                     getlabel(token.operands[1], analyzed.outlabel, analyzed.inlabel)
                 },
             })
-        elseif token.operator == "l'" then
-            local value = {
-                operator = "l'",
-                operands = {
-                    getlabel(token.operands[1], analyzed.outlabel, analyzed.inlabel)
-                },
-            };
-
-            if analyzed.tokens[i - 1] ~= nil then
-                local prev = analyzed.tokens[i - 1].operator
-                if prev == "zali" or prev == "lar" or prev == "ral" then
-                        table.insert(result, #result, value)
-                elseif prev == "fenx" then
-                    table.insert(result, #result - 1, value)
-                elseif prev == "ycax" and type(result[#result].operands[0]) ~= "number" then
-                    table.insert(result, #result,  value)
-                else
-                    table.insert(result, value)
-                end
-            else
-                error("Nothing operator before \"l'\"")
-            end
         elseif token.operator == "fi" then
             table.insert(result, {
                 operator = "fi",
