@@ -283,10 +283,10 @@ function getvarlabel(var, outlabel, inlabel)
                 return first .. "+" .. tonumber(second) .. "@"
             end
         elseif issecond then
-            if first == "0" then
-                return second .. "@"
-            elseif opd == "|" then
+            if opd == "|" then
                 error("Not supported 'imm|reg'");
+            elseif first == "0" then
+                return second .. "@"
             else
                 return second .. "+" .. tonumber(first) .. "@"
             end

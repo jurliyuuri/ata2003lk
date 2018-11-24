@@ -36,7 +36,7 @@ function transpile(analyzed)
                 },
             })
         elseif token.operator == "ycax" then
-            local num = tonumber(token.operands[1])
+            local num = tonumber(getvarlabel(token.operands[1]))
 
             if num ~= nil then
                 table.insert(result, {
