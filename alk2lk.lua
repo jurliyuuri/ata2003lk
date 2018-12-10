@@ -36,7 +36,7 @@ function transpile(analyzed)
                 },
             })
         elseif token.operator == "ycax" then
-            local num = tonumber(getvarlabel(token.operands[1]))
+            local num = tonumber(getvarlabel(token.operands[1], analyzed.outlabel, analyzed.inlabel))
 
             if num ~= nil then
                 table.insert(result, {
@@ -50,28 +50,28 @@ function transpile(analyzed)
                 table.insert(result, {
                     operator = "ata",
                     operands = {
-                        getvarlabel(token.operands[1]),
+                        getvarlabel(token.operands[1], analyzed.outlabel, analyzed.inlabel),
                         "f5",
                     },
                 })
                 table.insert(result, {
                     operator = "ata",
                     operands = {
-                        getvarlabel(token.operands[1]),
+                        getvarlabel(token.operands[1], analyzed.outlabel, analyzed.inlabel),
                         "f5",
                     },
                 })
                 table.insert(result, {
                     operator = "ata",
                     operands = {
-                        getvarlabel(token.operands[1]),
+                        getvarlabel(token.operands[1], analyzed.outlabel, analyzed.inlabel),
                         "f5",
                     },
                 })
                 table.insert(result, {
                     operator = "ata",
                     operands = {
-                        getvarlabel(token.operands[1]),
+                        getvarlabel(token.operands[1], analyzed.outlabel, analyzed.inlabel),
                         "f5",
                     },
                 })

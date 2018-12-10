@@ -67,6 +67,10 @@ function readfile(filename)
         end
     end
 
+    if not(buf == "" or buf == nil or buf == " ") then
+        table.insert(words, buf)
+    end
+
     if comment then
         error("Not found end ';'");
     end
@@ -103,8 +107,20 @@ function analyze(words)
     local tokens = {}
     local outlabel = {}
     local inlabel = {}
+    local snoj = {}
     local swi = nil
     local skip = 0
+    local tmp = nil
+
+    function maybeget(label_or_value)
+        for k,v in pairs(snoj) do
+            if k == label_or_value then
+                return v
+            end
+        end
+
+        return label_or_value
+    end
 
     -- ラベル処理
     for i, v in ipairs(words) do
@@ -112,18 +128,35 @@ function analyze(words)
             skip = skip - 1
         elseif swi ~= nil then
             local num = tonumber(v, 10)
-            if isregister(v) or string.find(v, "[+|@]") ~= nil or (num ~= nil and num >= 0) then
+
+            if tmp ~= nil and (isregister(v) or string.find(v, "[+|@]") ~= nil or (num ~= nil and num >= 0)) then
                 error("invalid label: " .. v)
             elseif swi == "out" then
                 outlabel[v] = true
-            else
+                swi = nil
+            elseif swi == "in" then
                 inlabel[v] = true
+                swi = nil
+            else
+                if tmp ~= nil then
+                    if outlabel[v] ~= nil or inlabel[v] ~= nil then
+                        error("duplication label: " .. v)
+                    end
+                    snoj[v] = tmp
+                    tmp = nil
+                    swi = nil
+                elseif num ~= nil then
+                    tmp = v
+                else
+                    error("invalid value (only number) : " .. v)
+                end
             end
-            swi = nil
         elseif v == "xok" or v == "kue" then
             swi = "out"
         elseif v == "nll" or v == "l'" or v == "cers" then
             swi = "in"
+        elseif v == "snoj" then
+            swi = "snoj"
         else
             skip = skipcount(v)
             swi = nil
@@ -146,6 +179,13 @@ function analyze(words)
                         words[i + 1]
                     },
                 })
+            elseif v == "ycax" or v == "dus" or v == "maldus" then
+                table.insert(tokens, {
+                    operator = v,
+                    operands = {
+                        maybeget(words[i + 1])
+                    },
+                })
             else
                 table.insert(tokens, {
                     operator = v,
@@ -155,6 +195,8 @@ function analyze(words)
                 })
             end
             i = i + 2
+        elseif v == "snoj" then
+            i = i + 3
         elseif v == "ral" or v == "dosn"  or v == "fen" then
             table.insert(tokens, {
                 operator = v,
@@ -172,8 +214,8 @@ function analyze(words)
                 operator = v,
                 suboperator = words[i + 3],
                 operands = {
-                    words[i + 1],
-                    words[i + 2],
+                    maybeget(words[i + 1]),
+                    maybeget(words[i + 2]),
                 },
             })
             if v == "lar" then
@@ -184,9 +226,9 @@ function analyze(words)
             table.insert(tokens, {
                 operator = v,
                 operands = {
-                    words[i + 1],
-                    words[i + 2],
-                    words[i + 3]
+                    maybeget(words[i + 1]),
+                    maybeget(words[i + 2]),
+                    maybeget(words[i + 3])
                 },
             })
             i = i + 4
@@ -196,8 +238,8 @@ function analyze(words)
             table.insert(tokens, {
                 operator = v,
                 operands = {
-                    words[i + 1],
-                    words[i + 2]
+                    maybeget(words[i + 1]),
+                    maybeget(words[i + 2])
                 },
             })
             i = i + 3
@@ -213,7 +255,7 @@ function analyze(words)
     return {
         tokens = tokens,
         inlabel = inlabel,
-        outlabel = outlabel,
+        outlabel = outlabel
     }
 end
 

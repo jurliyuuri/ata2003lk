@@ -21,8 +21,8 @@ ycax 2
 
 ; 関数定義は"cers (関数名)"とする ;
 ; dosnに来たらリターンする ;
-; a+b@だけでなくa|b@も使用可能 ;
 cers cer-lix
+; a+b@だけでなくa|b@も使用可能．ただしa|bの場合，bは整数のみ可 ;
 krz f5+4@ f0
 ata f5|0@ f0
 dosn
@@ -31,3 +31,9 @@ dosn
 lar f0 0 xolo
     ata f0 
 ral
+
+; コンパイル時定数定義は"snoj (値) (ラベル)"とする ;
+; 現在は数値のみ可能 (再帰的な処理を行なっていないため) ;
+snoj 10 zehn
+krz zehn f0
+ata zehn f0
