@@ -37,3 +37,12 @@ ral
 snoj 10 zehn
 krz zehn f0
 ata zehn f0
+
+; プリプロセッサは"!fi/!fi-niv (処理) !if"とする ;
+; !olは未実装 ;
+!fi ubpl
+krz 1 f0
+!if
+!fi-niv ubpl
+krz 2003 f0
+!if

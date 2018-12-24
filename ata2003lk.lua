@@ -7,10 +7,8 @@ end
 
 function readfile(filename)
     local words = {}
-    local infile
-    local err
+    local infile, err = io.open(filename, "r")
 
-    infile, err = io.open(filename, "r")
     if infile == nil then
         print("error (infile): " .. tostring(err))
         os.exit(1)
@@ -103,7 +101,7 @@ local function skipcount(str)
     end
 end
 
-function analyze(words)
+function analyze(words, options)
     local tokens = {}
     local outlabel = {}
     local inlabel = {}
@@ -166,10 +164,51 @@ function analyze(words)
     -- 構文解析
     local i = 1
     local larcheck = 0
+    local fsnoj
+
+    if options ~= nil and options.fsnoj ~= nil then
+        fsnoj = options.fsnoj
+    else
+        fsnoj = {}
+    end
+
     while i <= #words do
         local v = words[i]
 
-        if ismono(v) then
+        if string.sub(v, 1, 1) == "!" then
+            if v == "!snoj" then
+                table.insert(fsnoj, words[i + 1])
+                i = i + 2
+            elseif v == "!fi" then
+                if utils.findlist(fsnoj, function (x) return x == words[i + 1] end) == nil then
+                    while i <= #words and v ~= "!if" do
+                        v = words[i]
+                        i = i + 1
+                    end
+
+                    if i > #words then
+                        error("end of file in '!fi'")
+                    end
+                else
+                    i = i + 2
+                end
+            elseif v == "!fi-niv" then
+                if utils.findlist(fsnoj, function (x) return x == words[i + 1] end) ~= nil then
+                    while i <= #words and v ~= "!if" do
+                        v = words[i]
+                        i = i + 1
+                    end
+
+                    if i > #words then
+                        error("end of file in '!fi-niv'")
+                    end
+                else
+                    i = i + 2
+                end
+            elseif v == "!if" then
+                i = i + 1
+            end
+        elseif ismono(v) then
             if v == "l'" then
                 local val, idx = utils.findlist(tokens,function (w) return w.operator ~= "kue" and w.operator ~= "xok" end, true)
 

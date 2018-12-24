@@ -1,7 +1,24 @@
 require("ata2003lk")
 
-local wordlist = readfile(arg[1])
-local analyzelist = analyze(wordlist)
+local filename = nil
+local options = {
+    fsnoj = {},
+}
+
+local i = 1
+while i <= #arg do
+    v = arg[i]
+    if v == "--el" then
+        i = i + 1
+        table.insert(options.fsnoj, arg[i])
+    else
+        filename = arg[i]
+    end
+    i = i + 1
+end
+
+local wordlist = readfile(filename)
+local analyzelist = analyze(wordlist, options)
 -- 確認用
 -- print(analyzelist)
 -- for i, v in ipairs(analyzelist.tokens) do
