@@ -10,7 +10,7 @@ while i <= #arg do
     v = arg[i]
     if v == "--el" then
         i = i + 1
-        table.insert(options.fsnoj, arg[i])
+        options.fsnoj[arg[i]] = true
     else
         filename = arg[i]
     end

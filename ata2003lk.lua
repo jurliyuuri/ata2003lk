@@ -177,11 +177,11 @@ function analyze(words, options)
 
         if string.sub(v, 1, 1) == "!" then
             if v == "!snoj" then
-                table.insert(fsnoj, words[i + 1])
+                fsnoj[words[i + 1]] = true
                 i = i + 2
             elseif v == "!fi" then
-                if utils.findlist(fsnoj, function (x) return x == words[i + 1] end) == nil then
-                    while i <= #words and v ~= "!if" do
+                if not fsnoj[words[i + 1]] then
+                    while i <= #words and v ~= "!if" and v ~= "!ol" do
                         v = words[i]
                         i = i + 1
                     end
@@ -193,7 +193,7 @@ function analyze(words, options)
                     i = i + 2
                 end
             elseif v == "!fi-niv" then
-                if utils.findlist(fsnoj, function (x) return x == words[i + 1] end) ~= nil then
+                if fsnoj[words[i + 1]] then
                     while i <= #words and v ~= "!if" do
                         v = words[i]
                         i = i + 1
@@ -204,6 +204,15 @@ function analyze(words, options)
                     end
                 else
                     i = i + 2
+                end
+            elseif v == "!ol" then
+                while i <= #words and v ~= "!if" do
+                    v = words[i]
+                    i = i + 1
+                end
+
+                if i > #words then
+                    error("end of file in '!ol'")
                 end
             elseif v == "!if" then
                 i = i + 1

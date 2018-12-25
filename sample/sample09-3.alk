@@ -1,0 +1,19 @@
+; プリプロセッサ !snoj ;
+; "!snoj (定義名)"となる ;
+!snoj ubpl
+krz 0 f0
+
+!fi ubpl
+krz 1 f0
+!if
+
+!fi-niv ubpl
+krz 2003 f0
+!if
+
+zali f0
+fenx tvarlon-knloan
+ycax 1
+krz 0 f0
+dosn
+

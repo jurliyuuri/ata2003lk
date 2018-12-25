@@ -1,0 +1,17 @@
+; プリプロセッサ !fi/!fi-niv/!if ;
+; コマンドの引数は"(ファイル名) --el (定義名)" ;
+; "--el ubpl"を渡すか否かで変わるようになっている ;
+krz 0 f0
+
+!fi ubpl
+krz 1 f0
+!ol
+krz 2003 f0
+!if
+
+zali f0
+fenx tvarlon-knloan
+ycax 1
+krz 0 f0
+dosn
+
