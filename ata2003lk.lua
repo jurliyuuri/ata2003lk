@@ -182,33 +182,37 @@ function analyze(words, options)
             elseif v == "!fi" then
                 if not fsnoj[words[i + 1]] then
                     while i <= #words and v ~= "!if" and v ~= "!ol" do
-                        v = words[i]
                         i = i + 1
+                        v = words[i]
                     end
 
                     if i > #words then
                         error("end of file in '!fi'")
                     end
+
+                    i = i + 1
                 else
                     i = i + 2
                 end
             elseif v == "!fi-niv" then
                 if fsnoj[words[i + 1]] then
-                    while i <= #words and v ~= "!if" do
-                        v = words[i]
+                    while i <= #words and v ~= "!if" and v ~= "!ol" do
                         i = i + 1
+                        v = words[i]
                     end
 
                     if i > #words then
                         error("end of file in '!fi-niv'")
                     end
+
+                    i = i + 1
                 else
                     i = i + 2
                 end
             elseif v == "!ol" then
                 while i <= #words and v ~= "!if" do
-                    v = words[i]
                     i = i + 1
+                    v = words[i]
                 end
 
                 if i > #words then
