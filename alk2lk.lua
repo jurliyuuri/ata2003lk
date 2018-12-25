@@ -203,7 +203,7 @@ function transpile(analyzed)
         i = i + 1
     end
 
-    local outfile, err = io.open(string.match(arg[1], "(.+)%.alk") .. ".lk", "w")
+    local outfile, err = io.open(string.match(filename, "(.+)%.alk") .. ".lk", "w")
     if outfile == nil then
         print("error (outfile): " .. tostring(err))
         os.exit(1)
