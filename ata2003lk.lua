@@ -109,6 +109,7 @@ function analyze(words, options)
     local swi = nil
     local skip = 0
     local tmp = nil
+    local lifem = {}
 
     function maybeget(label_or_value)
         for k,v in pairs(snoj) do
@@ -238,6 +239,16 @@ function analyze(words, options)
                         maybeget(words[i + 1])
                     },
                 })
+            elseif v == "lifem" or v == "lifem8" or v == "lifem16" then
+                if tokens[#tokens].operator == "nll" then
+                    table.insert(lifem, table.remove(tokens))
+                end
+                table.insert(lifem,{
+                    operator = v,
+                    operands = {
+                        words[i + 1]
+                    },
+                })
             else
                 table.insert(tokens, {
                     operator = v,
@@ -298,6 +309,10 @@ function analyze(words, options)
         end
     end
 
+    for i,v in ipairs(lifem) do
+        table.insert(tokens, v)
+    end
+
     if larcheck > 0 then
         error("Not found to match 'ral'")
     elseif larcheck < 0 then
@@ -351,25 +366,14 @@ function getvarlabel(var, outlabel, inlabel)
             if opd == "|" then
                 error("Not supported 'reg|reg'");
             else
-                local buf
-                success, label = pcall(getlabel, first, outlabel, inlabel);
-                if success then
-                    buf = label .. "+"
-                else
-                    buf = first .. "+"
-                end
-
-                success, label = pcall(getlabel, second, outlabel, inlabel);
-                if success then
-                    buf = buf .. label .. "@"
-                else
-                    buf = buf .. second .. "@"
-                end
-
-                return buf
+                return first .. "+" .. second .. "@"
             end
         elseif isfirst then
-            if second == "0" then
+            success, label = pcall(getlabel, second, outlabel, inlabel);
+
+            if success then
+                return first .. "+" .. label .. "@"
+            elseif second == "0" then
                 return first .. "@"
             elseif opd == "|" then
                 return first .. "+" .. (0x00000000FFFFFFFF & (-tonumber(second))) .. "@"
@@ -377,7 +381,11 @@ function getvarlabel(var, outlabel, inlabel)
                 return first .. "+" .. tonumber(second) .. "@"
             end
         elseif issecond then
-            if opd == "|" then
+            success, label = pcall(getlabel, first, outlabel, inlabel);
+
+            if success then
+                return label .. "+" .. second .. "@"
+            elseif opd == "|" then
                 error("Not supported 'imm|reg'");
             elseif first == "0" then
                 return second .. "@"
